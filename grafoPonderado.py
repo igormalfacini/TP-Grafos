@@ -77,21 +77,15 @@ class GrafoPonderado:
             for i in self.lista_adj:
                 pass
     
-    def qntd_votacao(self, nome_planilha):
+    def gerar_arquivo_qtd_votacoes_participadas(self, nome_planilha):
         planilha = pd.read_excel(nome_planilha)
         for i in self.lista_adj:
             qtdVotacoes = 0
             linhas_filtradas = planilha[planilha['deputado_nome'] == i]
             for linha in linhas_filtradas.iterrows():
                 qtdVotacoes += 1
-            with open("quantidadeVotacoes.txt", 'a') as arquivo:
+            with open("votacaoVotos-2023-deputados.txt", 'a') as arquivo:
                 arquivo.write(f"{i} {qtdVotacoes} \n")
-            
-
-    def gerar_arquivo_qtd_votacoes_participadas(self, nome_planilha):
-        self.qntd_votacao(nome_planilha)
-        with open("quantidadeVotacoes.txt", 'w') as arquivo:
-            arquivo.write('teste')
 
     def __str__(self) -> str:
         saida = ""

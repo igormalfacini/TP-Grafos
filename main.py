@@ -1,11 +1,7 @@
 from grafoPonderado import GrafoPonderado
 
 g = GrafoPonderado()
-# g.ler_planilha("votacoesVotos-Teste.xlsx")
-g.ler_planilha_cria_nos("votacoesVotos-Teste.xlsx")
-g.qntd_votacao("votacoesVotos-Teste.xlsx")
-
-# g.ler_planilha_cria_nos("votacoesVotos-2023.xlsx")
-# g.qntd_votacao("votacoesVotos-2023.xlsx")
-
-# print(g)
+nome_planilha = input("Informe o arquivo de votações: ")
+g.ler_planilha_cria_nos(nome_planilha)
+g.gerar_arquivo_qtd_votacoes_participadas(nome_planilha)
+print("Processando...\nO grafo foi escrito nos arquivos:\n- votacaoVotos-2023-graph.txt\n- votacaoVotos-2023-deputados.txt")
