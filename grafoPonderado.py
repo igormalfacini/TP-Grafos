@@ -47,37 +47,29 @@ class GrafoPonderado:
         for indice, linha in planilha.iterrows():
             valor_nome = linha['deputado_nome']     
             self.adicionar_no(valor_nome)  
-    
-    def linha_comparator(self, linha1, linha2):
-        return (linha1['idVotacao'] == linha2['idVotacao'] 
-                and linha1['voto'] == linha2['voto'] 
-                and linha1['deputado_nome'] == linha2['deputado_nome'] 
-                and linha1['deputado_id'] == linha2['deputado_id'])
-    
+
     def ler_planilha_criar_aresta(self, nome_planilha):
         planilha = pd.read_excel(nome_planilha)
-        for indice1, linha1 in planilha.iterrows():
-            for indice2, linha2 in planilha.iterrows():
-                if(self.linha_comparator(linha1, linha2)):
-                    continue
-                if(linha1['idVotacao'] == linha2['idVotacao']
-                   and linha1['voto'] == linha2['voto']):
-                    self.adicionar_aresta(linha1['deputado_nome'], linha2['deputado_nome'])
+        arestas = {}
+
+        for indice, linha in planilha.iterrows():
+            chave = (linha['idVotacao'], linha['voto'])
+            deputado_nome = linha['deputado_nome']
+
+            if chave not in arestas:
+                arestas[chave] = [deputado_nome]
+            else:
+                for deputado in arestas[chave]:
+                    self.adicionar_aresta(deputado, deputado_nome)
+                arestas[chave].append(deputado_nome)
     
     def gerar_arquivo_grafo(self, nome_arquivo):
         with open(nome_arquivo, 'w') as arquivo:
-            arquivo.write(f"{self.num_nos} {round(self.num_arestas/2)}\n")
-            nos_gravados = {}
+            arquivo.write(f"{self.num_nos} {self.num_arestas}\n")
             for no in self.lista_adj:
                 for adj in self.lista_adj[no]:
-                    if adj in nos_gravados and no in nos_gravados[adj]:
-                        continue
                     arquivo.write(f"{no} {adj} {self.lista_adj[no][adj]}\n")
                     
-                    if(no not in nos_gravados):
-                        nos_gravados[no] = {}
-                    nos_gravados[no][adj] = True
-    
     def gerar_arquivo_qtd_votacoes_participadas(self, nome_planilha):
         planilha = pd.read_excel(nome_planilha)
         for i in self.lista_adj:
