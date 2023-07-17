@@ -14,39 +14,19 @@ class GrafoPonderado:
         self.lista_adj[no] = {}
         self.num_nos += 1
 
-    def adicionar_aresta(self, no1, no2, peso):
+    def adicionar_no_adj(self, no_pai, no_filho):
+        if no_filho not in self.lista_adj[no_pai]:
+            self.lista_adj[no_pai][no_filho] = 1
+            self.num_arestas += 1
+            return
+
+        self.lista_adj[no_pai][no_filho] += 1
+
+    def adicionar_aresta(self, no1, no2):
         if no1 not in self.lista_adj:
             self.adicionar_no(no1)
-        if no2 not in self.lista_adj:
-            self.adicionar_no(no2)
-        self.lista_adj[no1][no2] = peso
-        self.num_arestas += 1
 
-    def adicionar_nos(self, nos):
-        for no in nos:
-            self.adicionar_no(no)
-
-    def adicionar_aresta_bidirecional(self, no1, no2, peso):
-        self.adicionar_aresta(no1, no2, peso)
-        self.adicionar_aresta(no2, no1, peso)
-
-    def remover_no(self, no):
-        for no2 in self.lista_adj:
-            if no in self.lista_adj[no2]:
-                self.lista_adj[no2].pop(no)
-                self.num_arestas -= 1
-        self.num_arestas -= len(self.lista_adj[no])
-        self.num_nos -= 1
-        self.lista_adj.pop(no)
-
-    def remover_aresta(self, no1, no2):
-        try:
-          self.lista_adj[no1].pop(no2)
-          self.num_arestas -= 1
-        except KeyError as e:
-            print(f"AVISO: Nó {e} não existe")
-        except ValueError as e:
-            print(f"AVISO: Aresta {no1} -> {no2} não existe")
+        self.adicionar_no_adj(no1, no2)
 
     def ler_arquivo(self, nome_arquivo):
         arquivo = open(nome_arquivo, 'r')
@@ -68,14 +48,35 @@ class GrafoPonderado:
             valor_nome = linha['deputado_nome']     
             self.adicionar_no(valor_nome)  
     
+    def linha_comparator(self, linha1, linha2):
+        return (linha1['idVotacao'] == linha2['idVotacao'] 
+                and linha1['voto'] == linha2['voto'] 
+                and linha1['deputado_nome'] == linha2['deputado_nome'] 
+                and linha1['deputado_id'] == linha2['deputado_id'])
+    
     def ler_planilha_criar_aresta(self, nome_planilha):
         planilha = pd.read_excel(nome_planilha)
-        for linha in planilha.iterrows():
-            valor_idVotacao = linha['idVotacao']
-            valor_nome = linha['deputado_nome']
-            valor_voto = linha['voto']
-            for i in self.lista_adj:
-                pass
+        for indice1, linha1 in planilha.iterrows():
+            for indice2, linha2 in planilha.iterrows():
+                if(self.linha_comparator(linha1, linha2)):
+                    continue
+                if(linha1['idVotacao'] == linha2['idVotacao']
+                   and linha1['voto'] == linha2['voto']):
+                    self.adicionar_aresta(linha1['deputado_nome'], linha2['deputado_nome'])
+    
+    def gerar_arquivo_grafo(self, nome_arquivo):
+        with open(nome_arquivo, 'w') as arquivo:
+            arquivo.write(f"{self.num_nos} {round(self.num_arestas/2)}\n")
+            nos_gravados = {}
+            for no in self.lista_adj:
+                for adj in self.lista_adj[no]:
+                    if adj in nos_gravados and no in nos_gravados[adj]:
+                        continue
+                    arquivo.write(f"{no} {adj} {self.lista_adj[no][adj]}\n")
+                    
+                    if(no not in nos_gravados):
+                        nos_gravados[no] = {}
+                    nos_gravados[no][adj] = True
     
     def gerar_arquivo_qtd_votacoes_participadas(self, nome_planilha):
         planilha = pd.read_excel(nome_planilha)
