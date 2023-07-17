@@ -1,4 +1,5 @@
 import pandas as pd
+import warnings
 
 class GrafoPonderado:
     
@@ -8,9 +9,10 @@ class GrafoPonderado:
         self.num_arestas = 0
 
     def adicionar_no(self, no):
+        warnings.filterwarnings("ignore", category=UserWarning)
         if no in self.lista_adj:
-            # print(f"AVISO: Nó {no} já existe!")
             return
+        
         self.lista_adj[no] = {}
         self.num_nos += 1
 
@@ -28,22 +30,9 @@ class GrafoPonderado:
 
         self.adicionar_no_adj(no1, no2)
 
-    def ler_arquivo(self, nome_arquivo):
-        arquivo = open(nome_arquivo, 'r')
-        i = 0
-        for linha in arquivo:
-            i += 1
-            if i == 1:
-                continue
-            conteudo = linha.strip().split(" ")
-            u = conteudo[0]
-            v = conteudo[1]
-            w = int(conteudo[2])
-            self.adicionar_aresta(u, v, w)
-        arquivo.close()
-
     def ler_planilha_cria_nos(self, nome_planilha):
         planilha = pd.read_excel(nome_planilha)
+
         for indice, linha in planilha.iterrows():
             valor_nome = linha['deputado_nome']     
             self.adicionar_no(valor_nome)  
@@ -63,22 +52,30 @@ class GrafoPonderado:
                     self.adicionar_aresta(deputado, deputado_nome)
                 arestas[chave].append(deputado_nome)
     
-    def gerar_arquivo_grafo(self, nome_arquivo):
-        with open(nome_arquivo, 'w') as arquivo:
+    def gerar_arquivo_grafo(self, nome_planilha):
+        self.ler_planilha_criar_aresta(nome_planilha)
+        nome_resultado = nome_planilha.split(".")[0] + '-graph.txt'
+
+        with open(nome_resultado, 'w') as arquivo:
             arquivo.write(f"{self.num_nos} {self.num_arestas}\n")
             for no in self.lista_adj:
                 for adj in self.lista_adj[no]:
                     arquivo.write(f"{no} {adj} {self.lista_adj[no][adj]}\n")
+        return nome_resultado
                     
     def gerar_arquivo_qtd_votacoes_participadas(self, nome_planilha):
+        self.ler_planilha_cria_nos(nome_planilha)
         planilha = pd.read_excel(nome_planilha)
+        nome_resultado = nome_planilha.split(".")[0] + '-deputados.txt'
+
         for i in self.lista_adj:
             qtdVotacoes = 0
             linhas_filtradas = planilha[planilha['deputado_nome'] == i]
             for linha in linhas_filtradas.iterrows():
                 qtdVotacoes += 1
-            with open("votacaoVotos-2023-deputados.txt", 'a') as arquivo:
+            with open(nome_resultado, 'a') as arquivo:
                 arquivo.write(f"{i} {qtdVotacoes} \n")
+        return nome_resultado
 
     def __str__(self) -> str:
         saida = ""
